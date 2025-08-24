@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic Keyword Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #4c51bf;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .topic-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .topic-input:focus {
+            outline: none;
+            border-color: #4c51bf;
+        }
+
+        .generate-btn {
+            background: #4c51bf;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 15px;
+            display: block;
+            width: 100%;
+        }
+
+        .generate-btn:hover {
+            background: #3c369d;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+        }
+
+        .keyword-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4c51bf;
+            transition: transform 0.2s;
+        }
+
+        .keyword-card:hover {
+            transform: translateX(5px);
+        }
+
+        .keyword-title {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        .keyword-metrics {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .metric {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: #4299e1;
+        }
+
+        .trend-chart {
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trend-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(to right, #48bb78, #38a169);
+            width: 60%;
+            border-radius: 10px;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #4c51bf;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .example-topic {
+            color: #718096;
+            font-style: italic;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-search"></i> Topic Keyword Generator</h1>
+            <p>Discover powerful keywords for any topic with search volume and trend analysis</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <input type="text" class="topic-input" placeholder="Enter your topic (e.g., digital marketing, healthy recipes, web development)" />
+                <button class="generate-btn" onclick="generateKeywords()">
+                    <i class="fas fa-magic mr-2"></i>Generate Keywords
+                </button>
+                <div class="example-topic">Example topics: "SEO strategies", "vegan cooking", "machine learning"</div>
+            </div>
+
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p>Analyzing topic...</p>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="filters">
+                    <select class="filter-select">
+                        <option>All Metrics</option>
+                        <option>High Search Volume</option>
+                        <option>Low Competition</option>
+                        <option>Rising Trend</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>All Industries</option>
+                        <option>Tech</option>
+                        <option>Health</option>
+                        <option>Business</option>
+                        <option>Creative</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>Sort by Relevance</option>
+                        <option>Search Volume (High to Low)</option>
+                        <option>Competition (Low to High)</option>
+                        <option>Trend (Rising)</option>
+                    </select>
+                </div>
+
+                <div id="keywordsList">
+                    <!-- Keywords will appear here -->
+                </div>
+            </div>
+
+            <div class="no-results" id="noResults">
+                <i class="fas fa-lightbulb fa-3x mb-4" style="color: #cbd5e0;"></i>
+                <h3>No keywords found</h3>
+                <p>Try a different topic or adjust your search criteria</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock database of keywords for different topics
+        const keywordDatabase = {
+            "digital marketing": [
+                { keyword: "social media marketing", volume: "245K", competition: "high", trend: "rising" },
+                { keyword: "content marketing", volume: "189K", competition: "medium", trend: "stable" },
+                { keyword: "email marketing", volume: "156K", competition: "low", trend: "rising" },
+                { keyword: "seo optimization", volume: "210K", competition: "high", trend: "rising" },
+                { keyword: "ppc advertising", volume: "132K", competition: "medium", trend: "stable" },
+                { keyword: "influencer marketing", volume: "98K", competition: "low", trend: "rising" },
+                { keyword: "affiliate marketing", volume: "145K", competition: "medium", trend: "stable" },
+                { keyword: "video marketing", volume: "167K", competition: "medium", trend: "rising" }
+            ],
+            "healthy recipes": [
+                { keyword: "quick healthy meals", volume: "89K", competition: "low", trend: "rising" },
+                { keyword: "vegetarian dinner ideas", volume: "67K", competition: "medium", trend: "stable" },
+                { keyword: "keto diet plan", volume: "154K", competition: "high", trend: "rising" },
+                { keyword: "protein shake recipes", volume: "78K", competition: "medium", trend: "stable" },
+                { keyword: "gluten free baking", volume: "56K", competition: "low", trend: "rising" },
+                { keyword: "meal prep containers", volume: "45K", competition: "low", trend: "rising" },
+                { keyword: "smoothie bowl toppings", volume: "34K", competition: "low", trend: "stable" },
+                { keyword: "healthy snack alternatives", volume: "72K", competition: "medium", trend: "rising" }
+            ],
+            "web development": [
+                { keyword: "react framework", volume: "287K", competition: "high", trend: "rising" },
+                { keyword: "javascript tutorial", volume: "321K", competition: "high", trend: "rising" },
+                { keyword: "responsive design", volume: "198K", competition: "medium", trend: "stable" },
+                { keyword: "api integration", volume: "145K", competition: "medium", trend: "rising" },
+                { keyword: "git commands", volume: "112K", competition: "low", trend: "stable" },
+                { keyword: "css frameworks", volume: "89K", competition: "medium", trend: "stable" },
+                { keyword: "web accessibility", volume: "67K", competition: "low", trend: "rising" },
+                { keyword: "mobile app development", volume: "234K", competition: "high", trend: "rising" }
+            ]
+        };
+
+        function generateKeywords() {
+            const topic = document.querySelector('.topic-input').value.toLowerCase().trim();
+            
+            if (!topic) {
+                alert('Please enter a topic first!');
+                return;
+            }
+
+            // Show loading spinner
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('noResults').style.display = 'none';
+
+            // Simulate API delay
+            setTimeout(() => {
+                const keywords = findKeywords(topic);
+                
+                if (keywords.length > 0) {
+                    displayKeywords(keywords);
+                } else {
+                    showNoResults();
+                }
+                
+                // Hide loading spinner
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }, 1500);
+        }
+
+        function findKeywords(topic) {
+            // Check exact match first
+            if (keywordDatabase[topic]) {
+                return keywordDatabase[topic];
+            }
+            
+            // Find partial matches
+            const similarTopics = Object.keys(keywordDatabase).filter(t => t.includes(topic));
+            
+            if (similarTopics.length > 0) {
+                return keywordDatabase[similarTopics[0]];
+            }
+            
+            // Return generic keywords if no match found
+            return [
+                { keyword: topic + " tips", volume: "12K", competition: "low", trend: "stable" },
+                { keyword: "best " + topic, volume: "8K", competition: "low", trend: "stable" },
+                { keyword: topic + " guide", volume: "15K", competition: "medium", trend: "rising" },
+                { keyword: "learn " + topic, volume: "22K", competition: "medium", trend: "stable" }
+            ];
+        }
+
+        function displayKeywords(keywords) {
+            const keywordsList = document.getElementById('keywordsList');
+            keywordsList.innerHTML = '';
+
+            keywords.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'keyword-card';
+                
+                card.innerHTML = `
+                    <div class="keyword-title">${item.keyword}</div>
+                    <div class="keyword-metrics">
+                        <div class="metric">
+                            <i class="fas fa-search"></i>
+                            <span class="metric-value">${item.volume}</span>
+                        </div>
+                        <div class="metric">
+                            <i class="fas fa-bullseye"></i>
+                            <span class="metric-value">${item.competition.charAt(0).toUpperCase() + item.competition.slice(1)}</span>
+                        </div>
+                        <div class="metric">
+                            <i class="fas fa-chart-line"></i>
+                            <div class="trend-chart">
+                                <div class="trend-line"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                keywordsList.appendChild(card);
+            });
+            
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function showNoResults() {
+            document.getElementById('noResults').style.display = 'block';
+        }
+
+        // Allow pressing Enter to generate keywords
+        document.querySelector('.topic-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateKeywords();
+            }
+        });
+    </script>
+</body>
+</html>
